@@ -93,20 +93,26 @@ Se exige el uso de commits semánticos con la estructura: `<tipo>(<alcance>): <d
 [ PostgreSQL 16 ]        -> Bloqueo transaccional (SELECT ... FOR UPDATE)
 ```
 
-### 2. Esquema de Base de Datos (12 Tablas Normalizadas)
-El esquema implementa aislamiento multi-tenant estricto mediante la clave foránea e índice `tenant_id`:
+### 2. Esquema de Base de Datos (14 Tablas Normalizadas)
+El esquema implementa aislamiento multi-tenant estricto mediante la clave foránea e índice `tenant_id` gestionado por migraciones versionadas de **Flyway**:
 1. `plans`: Planes del SaaS (Emprendedor, Pro, Ilimitado).
-2. `tenants`: Registro de comercios con su subdominio `slug` y teléfono de WhatsApp.
-3. `roles`: Roles del sistema (`ROLE_ADMIN`, `ROLE_OPERATOR`, `ROLE_DISPATCHER`).
-4. `users`: Personal del comercio con autenticación JWT y asignación a tenant.
-5. `categories`: Clasificación del catálogo.
-6. `products`: Producto padre.
-7. `product_variants`: Variantes con SKU, precio y stock materializado (objetivo de bloqueo pesimista).
-8. `inventory_movements`: Kardex automático de entradas, salidas y ajustes.
-9. `customers`: Registro de clientes compradores (Guest Checkout automático).
-10. `orders`: Pedidos de venta con cálculo de montos y método de pago (Yape/Plin/Transferencia).
-11. `order_items`: Detalle de productos con snapshot histórico de nombres y precios.
-12. `dispatches`: Tablero logístico de despachos con couriers y tracking.
+2. `tenants`: Registro de comercios con su subdominio `slug`, teléfono de WhatsApp, branding (`logo_url`, `primary_color`, `banner_url`), billeteras digitales (`yape_qr_url`, `yape_phone`, `plin_phone`) y regla global de envío gratis (`free_shipping_threshold`).
+3. `shipping_rates`: Tarifario base configurable por zonas y modalidades (ej. Lima Centro, InDrive, Shalom Provincias). *(Añadido en V2)*.
+4. `roles`: Roles del sistema (`ROLE_ADMIN`, `ROLE_OPERATOR`, `ROLE_DISPATCHER`).
+5. `users`: Personal del comercio con autenticación JWT y asignación a tenant.
+6. `categories`: Clasificación del catálogo con slug único por comercio.
+7. `products`: Producto padre con badges promocionales (`badge`), flag de delivery gratis (`has_free_shipping`) y ordenamiento visual (`sort_order`).
+8. `product_images`: Galería de fotos por prenda con ordenamiento para carruseles móviles. *(Añadido en V2)*.
+9. `product_variants`: Variantes con SKU, precio regular, precio de oferta tachado (`compare_at_price`), costo y stock materializado (objetivo de bloqueo pesimista).
+10. `inventory_movements`: Kardex automático e inmutable con tipos de movimiento, costo unitario (`unit_cost`) y motivo obligatorio.
+11. `customers`: Registro de clientes compradores (Guest Checkout automático).
+12. `orders`: Pedidos de venta con reserva atómica de 20 min (`expires_at`), fecha de aprobación (`paid_at`), canal (`channel: WEB_CATALOG / POS_MANUAL`) y método de pago (Yape/Plin/Transferencia).
+13. `order_items`: Detalle de productos con snapshot histórico de nombres/precios y checklist de empaque (`is_packed`).
+14. `dispatches`: Tablero logístico de despachos multimodal (`dispatch_type: COURIER / AGENCY / MOTORIZED`), clave de recojo para agencias (`pickup_code` para Shalom), agencia de destino y tracking.
+
+#### Migraciones Flyway
+* `V1__init_schema.sql`: Estructura inicial multi-tenant (12 tablas base, planes y roles).
+* `V2__mvp_features_alignment.sql`: Alineación funcional con especificación MVP v1.0 (Tarifarios, galería, 20 min de reserva atómica, agencias Shalom/Olva y merchandising).
 
 ---
 
