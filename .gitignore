@@ -33,7 +33,7 @@ build/
 
 ### Temp & OS ###
 .env
-.agents/
+.agents/*.docx
 *.docx
 *.log
 .DS_Store
