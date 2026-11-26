@@ -56,3 +56,11 @@ meta:
   whatsapp:
     token: ${META_WHATSAPP_TOKEN:}
     phone-number-id: ${META_WHATSAPP_PHONE_NUMBER_ID:}
+
+logging:
+  level:
+    root: INFO
+    com.despachafacil.api: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+

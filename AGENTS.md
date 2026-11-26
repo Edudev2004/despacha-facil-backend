@@ -81,3 +81,21 @@ Toda pantalla del ecosistema (Landing, Panel de Tienda, Catálogo Móvil y Track
 * **Seguridad:** Tokens JWT en cookies `HttpOnly` (`df_token`) y cabecera `Authorization: Bearer`.
 * **Aislamiento:** Uso de `TenantContext` (`ThreadLocal`) para inyectar y filtrar por `tenant_id` en cada petición autenticada.
 * **Concurrencia:** Reserva de stock atómica con bloqueo pesimista en base de datos (`SELECT ... FOR UPDATE`) y control de tiempo de vida (TTL 20 min).
+
+---
+
+## 5. Protocolo de Logging Estructurado & Trazabilidad ("Reglas de Oro")
+
+Todo controlador, servicio de negocio y filtro de seguridad DEBE implementar logging profesional con Slf4j / Logger bien etiquetado con tags `[MODULO][ACCION]`:
+
+1. **Tagging Obligatorio:**
+   * Formato: `log.info("[MODULO][ACCION] [Tenant: {}] [User: {}] Detalle claro...", tenantId, userEmail);`
+   * Ejemplos: `[AUTH][LOGIN]`, `[TEAM][CREATE]`, `[TEAM][ROLE_CHANGE]`, `[SECURITY][AUTH_FILTER]`, `[STOCK][RESERVE]`.
+2. **Niveles Estrictos (Zero Saturación en Prod):**
+   * **`ERROR`:** Excepciones no controladas, fallos de conexión o breaches de seguridad. Siempre con stack trace o mensaje claro.
+   * **`WARN`:** Intentos de acceso denegados (403, 401), tokens expirados, validaciones de negocio rechazadas (stock insuficiente).
+   * **`INFO`:** Eventos clave del negocio (inicio de servidor, login exitoso, nuevo colaborador, pedido despachado). No satura el disco.
+   * **`DEBUG`:** Payloads de entrada/salida, headers de autenticación, queries detalladas. Habilitado en local para desarrollo; deshabilitado en prod.
+3. **Frontend API Client:**
+   * Toda petición desde el frontend debe incluir `credentials: "include"` para transmitir de manera segura las cookies HttpOnly (`df_token`).
+
