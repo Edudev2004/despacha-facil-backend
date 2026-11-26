@@ -47,3 +47,12 @@ app:
     - "https://despachafacil.com"
     - "https://app.despachafacil.com"
     - "http://localhost:3000"
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:onboarding@despachafacil.com}
+
+meta:
+  whatsapp:
+    token: ${META_WHATSAPP_TOKEN:}
+    phone-number-id: ${META_WHATSAPP_PHONE_NUMBER_ID:}
