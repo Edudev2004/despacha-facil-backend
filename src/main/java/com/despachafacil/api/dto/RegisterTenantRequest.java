@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record RegisterTenantRequest(
         @NotBlank(message = "El nombre de la tienda es obligatorio")
-        @Size(max = 150, message = "El nombre no puede exceder los 150 caracteres")
+        @Size(min = 3, max = 150, message = "El nombre de la tienda debe tener entre 3 y 150 caracteres")
         String storeName,
 
         @NotBlank(message = "El subdominio (slug) es obligatorio")
@@ -16,19 +16,19 @@ public record RegisterTenantRequest(
         String slug,
 
         @NotBlank(message = "El número de WhatsApp es obligatorio")
-        @Size(min = 9, max = 30, message = "El número de WhatsApp no es válido")
+        @Pattern(regexp = "^\\+[1-9]\\d{7,14}$", message = "El número de WhatsApp debe estar en formato internacional estándar E.164 (ej. +51921620680)")
         String whatsappNumber,
 
         @NotBlank(message = "El nombre del administrador es obligatorio")
-        @Size(max = 150, message = "El nombre no puede exceder los 150 caracteres")
+        @Size(min = 5, max = 150, message = "Ingresa tu nombre y apellido completo (mínimo 5 caracteres)")
         String adminFullName,
 
         @NotBlank(message = "El correo electrónico es obligatorio")
-        @Email(message = "El correo electrónico no es válido")
+        @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "El correo electrónico no es válido")
         String adminEmail,
 
         @NotBlank(message = "La contraseña es obligatoria")
-        @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$", message = "La contraseña debe tener mínimo 8 caracteres, incluyendo al menos una letra y un número")
         String password,
 
         String businessType
