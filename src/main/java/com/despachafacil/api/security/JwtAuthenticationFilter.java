@@ -7,6 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -63,8 +67,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                        log.info("[SECURITY][AUTH_FILTER] Peticion autenticada [URI: {}] [User: {}] [Role: {}] [Tenant: {}]",
+                                request.getRequestURI(), user.getEmail(), roleName, tenantId);
+                    } else {
+                        log.warn("[SECURITY][AUTH_FILTER] Token invalido o usuario inactivo para [URI: {}] [User: {}]",
+                                request.getRequestURI(), userEmail);
                     }
                 }
+            } else {
+                log.debug("[SECURITY][AUTH_FILTER] Peticion sin token [URI: {}]", request.getRequestURI());
             }
 
             filterChain.doFilter(request, response);
