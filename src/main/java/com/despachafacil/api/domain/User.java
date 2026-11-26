@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements TenantAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

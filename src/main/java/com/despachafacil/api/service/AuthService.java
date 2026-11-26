@@ -116,6 +116,7 @@ public class AuthService {
         );
     }
 
+    @Transactional(readOnly = true)
     public UserSessionResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email().trim().toLowerCase(Locale.ROOT))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas"));
