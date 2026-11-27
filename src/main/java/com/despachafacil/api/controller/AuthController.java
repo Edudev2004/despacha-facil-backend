@@ -9,6 +9,8 @@ import com.despachafacil.api.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -21,6 +23,8 @@ import java.time.Duration;
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
 
@@ -61,21 +65,29 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserSessionResponse> getCurrentUser(@AuthenticationPrincipal User user) {
         if (user == null) {
+            log.warn("[AUTH][ME] Intento de acceso a /me sin usuario autenticado");
             return ResponseEntity.status(401).build();
         }
 
-        UserSessionResponse session = new UserSessionResponse(
-                user.getId(),
-                user.getTenant().getId(),
-                user.getTenant().getSlug(),
-                user.getTenant().getName(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getRole().getName(),
-                null
-        );
+        try {
+            UserSessionResponse session = new UserSessionResponse(
+                    user.getId(),
+                    user.getTenant() != null ? user.getTenant().getId() : null,
+                    user.getTenant() != null ? user.getTenant().getSlug() : null,
+                    user.getTenant() != null ? user.getTenant().getName() : null,
+                    user.getFullName(),
+                    user.getEmail(),
+                    user.getRole() != null ? user.getRole().getName() : "ROLE_ADMIN",
+                    null
+            );
 
-        return ResponseEntity.ok(session);
+            log.info("[AUTH][ME] [Tenant: {}] [User: {}] Sesion recuperada con exito",
+                    session.tenantSlug(), session.email());
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            log.error("[AUTH][ME] Error obteniendo sesion para usuario: {}", user.getEmail(), e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping("/logout")
