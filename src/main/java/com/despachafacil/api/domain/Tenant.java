@@ -35,6 +35,9 @@ public class Tenant {
     @Column(name = "logo_url", length = 500)
     private String logoUrl;
 
+    @Column(name = "logo_has_border", nullable = false)
+    private Boolean logoHasBorder = true;
+
     @Column(name = "primary_color", length = 10)
     private String primaryColor = "#FFA800";
 
@@ -77,6 +80,8 @@ public class Tenant {
     public void setCurrency(String currency) { this.currency = currency; }
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public Boolean getLogoHasBorder() { return logoHasBorder; }
+    public void setLogoHasBorder(Boolean logoHasBorder) { this.logoHasBorder = logoHasBorder; }
     public String getPrimaryColor() { return primaryColor; }
     public void setPrimaryColor(String primaryColor) { this.primaryColor = primaryColor; }
     public String getBannerUrl() { return bannerUrl; }
