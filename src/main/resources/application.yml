@@ -45,6 +45,7 @@ jwt:
 app:
   frontend-urls:
     - "https://despachafacil.com"
+    - "https://www.despachafacil.com"
     - "https://app.despachafacil.com"
     - "http://localhost:3000"
 
