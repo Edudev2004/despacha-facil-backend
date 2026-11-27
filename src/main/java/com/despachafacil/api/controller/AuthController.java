@@ -6,6 +6,7 @@ import com.despachafacil.api.dto.RegisterTenantRequest;
 import com.despachafacil.api.dto.SlugCheckResponse;
 import com.despachafacil.api.dto.UserSessionResponse;
 import com.despachafacil.api.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -35,18 +36,11 @@ public class AuthController {
     @PostMapping("/register-tenant")
     public ResponseEntity<UserSessionResponse> registerTenant(
             @Valid @RequestBody RegisterTenantRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
         UserSessionResponse session = authService.registerTenant(request);
-
-        ResponseCookie cookie = ResponseCookie.from("df_token", session.token())
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofDays(30))
-                .sameSite("Lax")
-                .build();
-
+        ResponseCookie cookie = createAuthCookie(session.token(), 30L * 24 * 3600, httpRequest);
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.status(HttpStatus.CREATED).body(session);
     }
@@ -54,20 +48,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserSessionResponse> login(
             @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
         UserSessionResponse session = authService.login(request);
-
-        long maxAgeSeconds = Boolean.TRUE.equals(request.rememberMe()) ? 30 * 24 * 3600 : 24 * 3600;
-
-        ResponseCookie cookie = ResponseCookie.from("df_token", session.token())
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(Duration.ofSeconds(maxAgeSeconds))
-                .sameSite("Lax")
-                .build();
-
+        long maxAgeSeconds = Boolean.TRUE.equals(request.rememberMe()) ? 30L * 24 * 3600 : 24L * 3600;
+        ResponseCookie cookie = createAuthCookie(session.token(), maxAgeSeconds, httpRequest);
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.ok(session);
     }
@@ -93,16 +79,30 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("df_token", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
-
+    public ResponseEntity<Void> logout(HttpServletRequest httpRequest, HttpServletResponse response) {
+        ResponseCookie cookie = createAuthCookie("", 0L, httpRequest);
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    private ResponseCookie createAuthCookie(String token, long maxAgeSeconds, HttpServletRequest request) {
+        String host = request.getServerName();
+        boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("df_token", token)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(maxAgeSeconds);
+
+        if (host != null && host.endsWith("despachafacil.com")) {
+            builder.domain("despachafacil.com");
+            builder.secure(true);
+            builder.sameSite("Lax");
+        } else {
+            builder.secure(isSecure);
+            builder.sameSite("Lax");
+        }
+
+        return builder.build();
     }
 }
