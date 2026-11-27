@@ -29,7 +29,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
 
-    @Value("${app.frontend-urls:http://localhost:3000,https://despachafacil.com,https://app.despachafacil.com}")
+    @Value("${app.frontend-urls:http://localhost:3000,https://despachafacil.com,https://www.despachafacil.com,https://app.despachafacil.com}")
     private List<String> allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
@@ -71,6 +71,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedOriginPatterns(List.of("https://*.despachafacil.com", "https://despachafacil.com", "http://localhost:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Tenant-Slug", "X-Requested-With"));
         configuration.setAllowCredentials(true);
